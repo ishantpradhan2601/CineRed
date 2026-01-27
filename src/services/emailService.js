@@ -3,9 +3,9 @@ import { db } from '../firebase/config';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 // NOTE: Replace these with real keys from https://www.emailjs.com/
-const SERVICE_ID = "service_tqfldr8";
-const TEMPLATE_ID = "template_dlw5pxf";
-const PUBLIC_KEY = "PtDqV_abhS6cqMTCQ";
+const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 
 export const sendWelcomeEmail = async (userData) => {
     const welcomeMessage = `Dearest ${userData.displayName},\n\nWelcome to CineRed! We are honored to have you join our exclusive community of cinema enthusiasts. Your cinematic journey begins now.\n\nBest regards,\nThe CineRed Team`;
@@ -18,7 +18,7 @@ export const sendWelcomeEmail = async (userData) => {
             subject: "Welcome to CineRed Premiere",
             body: welcomeMessage,
             sent_at: serverTimestamp(),
-            status: (SERVICE_ID === "service_tqfldr8") ? "QUEUED_PENDING_KEYS" : "SENT"
+            status: (!SERVICE_ID || SERVICE_ID === "your_service_id") ? "QUEUED_PENDING_KEYS" : "SENT"
         });
         console.log('Email persisted to Firestore database.');
     } catch (dbErr) {
@@ -26,8 +26,8 @@ export const sendWelcomeEmail = async (userData) => {
     }
 
     // 2. DELIVERY ATTEMPT: Only proceed if keys are provided
-    if (SERVICE_ID === "service_tqfldr8" || PUBLIC_KEY === "PtDqV_abhS6cqMTCQ") {
-        console.warn("Real email delivery skipped: placeholders detected. Message is stored in your Firebase Database.");
+    if (!SERVICE_ID || !PUBLIC_KEY || SERVICE_ID === "your_service_id") {
+        console.warn("Real email delivery skipped: environment variables not configured. Message is stored in your Firebase Database.");
         return { status: 'stored_in_db' };
     }
 
